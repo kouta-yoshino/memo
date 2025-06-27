@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>吉野メモ帳</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 2em; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #222; 
+      transition: all 0.3s ease;
+      min-height: 100vh;
+    }
+    .dark { 
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: #f9f9f9; 
+    }
+    .container { 
+      max-width: 900px; 
+      margin: auto; 
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 2em;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      backdrop-filter: blur(10px);
+    }
+    .dark .container {
+      background: rgba(40, 40, 40, 0.95);
+    }
+    h1 { 
+      text-align: center; 
+      margin-bottom: 1.5em;
+      color: #2c3e50;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .dark h1 { color: #ecf0f1; }
+    
+    .form-section {
+      background: rgba(255,255,255,0.8);
+      padding: 1.5em;
+      border-radius: 10px;
+      margin-bottom: 1.5em;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .dark .form-section {
+      background: rgba(60,60,60,0.8);
+      border-color: rgba(255,255,255,0.1);
+    }
+    
+    textarea, input[type="text"] { 
+      width: 100%; 
+      font-size: 1.1em; 
+      margin-top: 0.5em; 
+      padding: 0.8em;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      font-family: inherit;
+    }
+    textarea:focus, input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    .dark textarea, .dark input {
+      background: rgba(40,40,40,0.8);
+      border-color: #555;
+      color: #f9f9f9;
+    }
+    .dark textarea:focus, .dark input:focus {
+      border-color: #667eea;
+    }
+    
+    textarea { 
+      height: 150px; 
+      resize: vertical;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 0.5em;
+      flex-wrap: wrap;
+      margin-top: 1em;
+    }
+    
+    button { 
+      padding: 0.8em 1.5em; 
+      font-size: 1em; 
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+    
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #229954;
+      transform: translateY(-2px);
+    }
+    
+    .toggle-dark { 
+      float: right; 
+      background: #34495e;
+      color: white;
+      border-radius: 50px;
+      padding: 0.5em 1em;
+    }
+    .dark .toggle-dark {
+      background: #f39c12;
+    }
+    
+    .memo-list { 
+      margin-top: 2em; 
+    }
+    
+    .memo-item { 
+      border: 1px solid #ddd; 
+      border-radius: 12px; 
+      padding: 1.5em; 
+      margin-bottom: 1.5em; 
+      background: rgba(255,255,255,0.9);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease;
+    }
+    .memo-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    .dark .memo-item { 
+      background: rgba(60,60,60,0.9); 
+      border-color: #444; 
+    }
+    
+    .memo-title { 
+      font-weight: bold; 
+      font-size: 1.3em; 
+      margin-bottom: 0.5em;
+      color: #2c3e50;
+    }
+    .dark .memo-title { color: #ecf0f1; }
+    
+    .memo-date { 
+      font-size: 0.9em; 
+      color: #888; 
+      margin-bottom: 0.5em;
+    }
+    .dark .memo-date { color: #bbb; }
+    
+    .memo-tags {
+      margin-bottom: 1em;
+    }
+    .tag {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 0.2em 0.6em;
+      border-radius: 15px;
+      font-size: 0.8em;
+      margin-right: 0.5em;
+      margin-bottom: 0.3em;
+    }
+    
+    .memo-content {
+      line-height: 1.6;
+      margin-bottom: 1em;
+    }
+    
+    .memo-actions {
+      display: flex;
+      gap: 0.5em;
+      flex-wrap: wrap;
+    }
+    
+    .search-box { 
+      margin-bottom: 1.5em; 
+      position: relative;
+    }
+    
+    .search-box input {
+      padding-left: 2.5em;
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 1em;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1em;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .dark .stats { color: #aaa; }
+    
+    .word-count {
+      background: #ecf0f1;
+      padding: 0.3em 0.8em;
+      border-radius: 15px;
+      font-size: 0.8em;
+    }
+    .dark .word-count {
+      background: #34495e;
+      color: #ecf0f1;
+    }
+    
+    .auto-save-indicator {
+      font-size: 0.8em;
+      color: #27ae60;
+      margin-left: 1em;
+    }
+    
+    .category-filter {
+      margin-bottom: 1em;
+    }
+    
+    .category-filter select {
+      padding: 0.5em;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background: white;
+    }
+    .dark .category-filter select {
+      background: #333;
+      color: #f9f9f9;
+      border-color: #555;
+    }
+    
+    .markdown-preview {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 1em;
+      margin-top: 1em;
+      display: none;
+    }
+    .dark .markdown-preview {
+      background: #2c3e50;
+      border-color: #34495e;
+    }
+    
+    .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 {
+      color: #2c3e50;
+      margin-top: 1em;
+      margin-bottom: 0.5em;
+    }
+    .dark .markdown-preview h1, .dark .markdown-preview h2, .dark .markdown-preview h3 {
+      color: #ecf0f1;
+    }
+    
+    .markdown-preview code {
+      background: #e9ecef;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    .dark .markdown-preview code {
+      background: #34495e;
+    }
+    
+    .markdown-preview pre {
+      background: #f8f9fa;
+      padding: 1em;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .dark .markdown-preview pre {
+      background: #34495e;
+    }
+    
+    .import-section {
+      margin-top: 1em;
+      padding-top: 1em;
+      border-top: 1px solid #ddd;
+    }
+    .dark .import-section {
+      border-color: #444;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .file-input-label {
+      display: inline-block;
+      padding: 0.8em 1.5em;
+      background: #95a5a6;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .file-input-label:hover {
+      background: #7f8c8d;
+      transform: translateY(-2px);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .status {
+      padding: 0.5em 1em;
+      border-radius: 5px;
+      margin-top: 1em;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .status.show {
+      opacity: 1;
+    }
+    
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .dark .status.success {
+      background: #1e4d2b;
+      color: #d4edda;
+      border-color: #2d5a3d;
+    }
+    
+    .dark .status.error {
+      background: #4d1e1e;
+      color: #f8d7da;
+      border-color: #5a2d2d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝吉野めも <button class="toggle-dark" onclick="toggleDark()">🌙</button></h1>
+    
+    <div class="form-section">
+      <input type="text" id="title" placeholder="タイトル">
+      <input type="text" id="tags" placeholder="タグ（カンマ区切り）例: 仕事, アイデア, 重要">
+      <textarea id="content" placeholder="ここにメモを書いてください...&#10;&#10;Markdown記法が使えます:&#10;# 見出し1&#10;## 見出し2&#10;**太字** *斜体*&#10;- リスト&#10;1. 番号付きリスト&#10;`コード`&#10;```&#10;コードブロック&#10;```"></textarea>
+      
+      <div class="stats">
+        <div class="word-count">文字数: <span id="wordCount">0</span></div>
+        <div class="auto-save-indicator" id="autoSaveIndicator"></div>
+      </div>
+      
+      <div class="button-group">
+        <button onclick="saveMemo()" id="saveBtn" class="btn-primary">💾 保存</button>
+        <button onclick="clearForm()" class="btn-secondary">🗑️ クリア</button>
+        <button onclick="togglePreview()" class="btn-secondary">👁️ プレビュー</button>
+        <button onclick="document.getElementById('fileInput').click()" class="btn-success">📁 インポート</button>
+      </div>
+      
+      <div class="markdown-preview" id="markdownPreview"></div>
+      
+      <div class="import-section">
+        <input type="file" id="fileInput" class="file-input" accept=".txt,.md" onchange="importFile(event)">
+        <label for="fileInput" class="file-input-label">📁 ファイルからインポート</label>
+      </div>
+    </div>
+    
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="メモを検索..." oninput="renderMemos()">
+    </div>
+    
+    <div class="category-filter">
+      <select id="categoryFilter" onchange="renderMemos()">
+        <option value="">すべてのカテゴリ</option>
+      </select>
+    </div>
+    
+    <div class="status" id="status"></div>
+    
+    <div class="memo-list" id="memoList"></div>
+  </div>
+
+  <script>
+    let editId = null;
+    let autoSaveTimer = null;
+    let allTags = new Set();
+    
+    // メモの取得・保存
+    function getMemos() {
+      return JSON.parse(localStorage.getItem('memos') || '[]');
+    }
+    
+    function setMemos(memos) {
+      localStorage.setItem('memos', JSON.stringify(memos));
+    }
+    
+    // 自動保存機能
+    function setupAutoSave() {
+      const content = document.getElementById('content');
+      const title = document.getElementById('title');
+      const tags = document.getElementById('tags');
+      
+      [content, title, tags].forEach(element => {
+        element.addEventListener('input', () => {
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(() => {
+            if (content.value.trim() || title.value.trim()) {
+              autoSave();
+            }
+          }, 2000);
+        });
+      });
+    }
+    
+    function autoSave() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const tags = document.getElementById('tags').value.trim();
+      
+      if (!title && !content) return;
+      
+      let memos = getMemos();
+      const now = new Date();
+      
+      if (editId !== null) {
+        memos = memos.map(m => m.id === editId ? { ...m, title, content, tags, date: now.toLocaleString() } : m);
+      } else {
+        memos.unshift({ id: Date.now(), title, content, tags, date: now.toLocaleString() });
+      }
+      
+      setMemos(memos);
+      showAutoSaveIndicator();
+    }
+    
+    function showAutoSaveIndicator() {
+      const indicator = document.getElementById('autoSaveIndicator');
+      indicator.textContent = '自動保存しました';
+      indicator.style.opacity = '1';
+      setTimeout(() => {
+        indicator.style.opacity = '0';
+      }, 2000);
+    }
+    
+    // メモの保存
+    function saveMemo() {
+      const title = document.getElementById('title').value.trim();
+      const content = document.getElementById('content').value.trim();
+      const tags = document.getElementById('tags').value.trim();
+      
+      if (!title && !content) return;
+      
+      let memos = getMemos();
+      const now = new Date();
+      
+      if (editId !== null) {
+        memos = memos.map(m => m.id === editId ? { ...m, title, content, tags, date: now.toLocaleString() } : m);
+        editId = null;
+        document.getElementById('saveBtn').textContent = '💾 保存';
+        showStatus('編集しました！', 'success');
+      } else {
+        memos.unshift({ id: Date.now(), title, content, tags, date: now.toLocaleString() });
+        showStatus('保存しました！', 'success');
+      }
+      
+      setMemos(memos);
+      clearForm();
+      renderMemos();
+      updateTags();
+    }
+    
+    // フォームクリア
+    function clearForm() {
+      document.getElementById('title').value = '';
+      document.getElementById('content').value = '';
+      document.getElementById('tags').value = '';
+      editId = null;
+      document.getElementById('saveBtn').textContent = '💾 保存';
+      document.getElementById('markdownPreview').style.display = 'none';
+      updateWordCount();
+    }
+    
+    // メモの表示
+    function renderMemos() {
+      const list = document.getElementById('memoList');
+      const search = document.getElementById('search').value.trim().toLowerCase();
+      const categoryFilter = document.getElementById('categoryFilter').value;
+      
+      let memos = getMemos();
+      
+      // 検索フィルター
+      if (search) {
+        memos = memos.filter(m => 
+          (m.title + m.content + m.tags).toLowerCase().includes(search)
+        );
+      }
+      
+      // カテゴリフィルター
+      if (categoryFilter) {
+        memos = memos.filter(m => 
+          m.tags && m.tags.toLowerCase().includes(categoryFilter.toLowerCase())
+        );
+      }
+      
+      list.innerHTML = memos.map(m => `
+        <div class="memo-item">
+          <div class="memo-title">${escapeHTML(m.title)}</div>
+          <div class="memo-date">📅 ${m.date}</div>
+          ${m.tags ? `<div class="memo-tags">${m.tags.split(',').map(tag => 
+            `<span class="tag">${escapeHTML(tag.trim())}</span>`
+          ).join('')}</div>` : ''}
+          <div class="memo-content">${renderMarkdown(m.content)}</div>
+          <div class="memo-actions">
+            <button onclick="editMemo(${m.id})" class="btn-primary">✏️ 編集</button>
+            <button onclick="deleteMemo(${m.id})" class="btn-danger">🗑️ 削除</button>
+            <button onclick="exportMemo(${m.id})" class="btn-success">📤 エクスポート</button>
+            <button onclick="duplicateMemo(${m.id})" class="btn-secondary">📋 複製</button>
+          </div>
+        </div>
+      `).join('') || '<div style="text-align: center; color: #888; padding: 2em;">メモがありません</div>';
+    }
+    
+    // メモの編集
+    function editMemo(id) {
+      const memos = getMemos();
+      const memo = memos.find(m => m.id === id);
+      if (!memo) return;
+      
+      document.getElementById('title').value = memo.title;
+      document.getElementById('content').value = memo.content;
+      document.getElementById('tags').value = memo.tags || '';
+      editId = id;
+      document.getElementById('saveBtn').textContent = '💾 編集保存';
+      updateWordCount();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    // メモの削除
+    function deleteMemo(id) {
+      if (!confirm('本当に削除しますか？')) return;
+      
+      let memos = getMemos();
+      memos = memos.filter(m => m.id !== id);
+      setMemos(memos);
+      renderMemos();
+      updateTags();
+      showStatus('削除しました！', 'success');
+    }
+    
+    // メモの複製
+    function duplicateMemo(id) {
+      const memos = getMemos();
+      const memo = memos.find(m => m.id === id);
+      if (!memo) return;
+      
+      const newMemo = {
+        ...memo,
+        id: Date.now(),
+        title: memo.title + ' (コピー)',
+        date: new Date().toLocaleString()
+      };
+      
+      memos.unshift(newMemo);
+      setMemos(memos);
+      renderMemos();
+      showStatus('メモを複製しました！', 'success');
+    }
+    
+    // メモのエクスポート
+    function exportMemo(id) {
+      const memos = getMemos();
+      const memo = memos.find(m => m.id === id);
+      if (!memo) return;
+      
+      const content = `タイトル: ${memo.title}
+日付: ${memo.date}
+タグ: ${memo.tags || 'なし'}
+
+${memo.content}`;
+      
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${memo.title || 'memo'}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showStatus('エクスポートしました！', 'success');
+    }
+    
+    // ファイルインポート
+    function importFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const lines = content.split('\n');
+        let title = '';
+        let tags = '';
+        let memoContent = '';
+        
+        // ファイルの内容を解析
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.startsWith('タイトル:')) {
+            title = line.replace('タイトル:', '').trim();
+          } else if (line.startsWith('タグ:')) {
+            tags = line.replace('タグ:', '').trim();
+          } else if (line.startsWith('日付:')) {
+            continue;
+          } else if (line === '') {
+            // 空行の後はメモ内容
+            memoContent = lines.slice(i + 1).join('\n');
+            break;
+          }
+        }
+        
+        // タイトルが見つからない場合はファイル名を使用
+        if (!title) {
+          title = file.name.replace(/\.[^/.]+$/, '');
+        }
+        
+        // メモ内容がない場合は全体を内容として扱う
+        if (!memoContent) {
+          memoContent = content;
+        }
+        
+        document.getElementById('title').value = title;
+        document.getElementById('content').value = memoContent;
+        document.getElementById('tags').value = tags;
+        updateWordCount();
+        
+        showStatus('ファイルをインポートしました！', 'success');
+        event.target.value = ''; // ファイル入力をリセット
+      };
+      reader.readAsText(file);
+    }
+    
+    // マークダウンレンダリング
+    function renderMarkdown(text) {
+      if (!text) return '';
+      
+      return text
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        .replace(/^- (.*$)/gim, '<li>$1</li>')
+        .replace(/^(\d+)\. (.*$)/gim, '<li>$2</li>')
+        .replace(/\n/g, '<br>');
+    }
+    
+    // プレビューの切り替え
+    function togglePreview() {
+      const preview = document.getElementById('markdownPreview');
+      const content = document.getElementById('content').value;
+      
+      if (preview.style.display === 'none' || preview.style.display === '') {
+        preview.innerHTML = renderMarkdown(content);
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+    
+    // 文字数カウント
+    function updateWordCount() {
+      const content = document.getElementById('content').value;
+      const wordCount = content.length;
+      document.getElementById('wordCount').textContent = wordCount;
+    }
+    
+    // タグの更新
+    function updateTags() {
+      const memos = getMemos();
+      allTags.clear();
+      
+      memos.forEach(memo => {
+        if (memo.tags) {
+          memo.tags.split(',').forEach(tag => {
+            allTags.add(tag.trim());
+          });
+        }
+      });
+      
+      const categoryFilter = document.getElementById('categoryFilter');
+      const currentValue = categoryFilter.value;
+      
+      categoryFilter.innerHTML = '<option value="">すべてのカテゴリ</option>';
+      Array.from(allTags).sort().forEach(tag => {
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = tag;
+        categoryFilter.appendChild(option);
+      });
+      
+      categoryFilter.value = currentValue;
+    }
+    
+    // ステータス表示
+    function showStatus(msg, type = 'success') {
+      const status = document.getElementById('status');
+      status.textContent = msg;
+      status.className = `status ${type} show`;
+      setTimeout(() => {
+        status.classList.remove('show');
+      }, 3000);
+    }
+    
+    // HTMLエスケープ
+    function escapeHTML(str) {
+      return str.replace(/[&<>'"]/g, tag => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'
+      }[tag]));
+    }
+    
+    // ダークモード切り替え
+    function toggleDark() {
+      document.body.classList.toggle('dark');
+      const button = document.querySelector('.toggle-dark');
+      button.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+      localStorage.setItem('darkmode', document.body.classList.contains('dark'));
+    }
+    
+    // 初期化
+    window.onload = function() {
+      if (localStorage.getItem('darkmode') === 'true') {
+        document.body.classList.add('dark');
+        document.querySelector('.toggle-dark').textContent = '☀️';
+      }
+      
+      setupAutoSave();
+      updateTags();
+      renderMemos();
+      
+      // 文字数カウントの初期化
+      const content = document.getElementById('content');
+      content.addEventListener('input', updateWordCount);
+      updateWordCount();
+    };
+  </script>
+</body>
+</html> 
